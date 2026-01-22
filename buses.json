@@ -1,0 +1,66 @@
+[
+    {
+        "id": "1",
+        "busNumber": "MHO7 AR 8899",
+        "routeType": "NH66",
+        "stops": [
+            {
+                "name": "Ratnagiri",
+                "photo": ""
+            },
+            {
+                "name": "Hathkhamba",
+                "photo": ""
+            },
+            {
+                "name": "Pali",
+                "photo": ""
+            },
+            {
+                "name": "Lanja",
+                "photo": ""
+            },
+            {
+                "name": "Rajapur",
+                "photo": ""
+            },
+            {
+                "name": "Kharepatan",
+                "photo": ""
+            },
+            {
+                "name": "Kankavli",
+                "photo": ""
+            },
+            {
+                "name": "Kasal",
+                "photo": ""
+            },
+            {
+                "name": "Kudal",
+                "photo": ""
+            },
+            {
+                "name": "Sawantwadi",
+                "photo": ""
+            },
+            {
+                "name": "Banda",
+                "photo": ""
+            },
+            {
+                "name": "Mapusa",
+                "photo": ""
+            },
+            {
+                "name": "Panaji",
+                "photo": ""
+            },
+            {
+                "name": "Mapusa",
+                "photo": ""
+            }
+        ],
+        "createdAt": "2026-01-22 17:38:40.226199"
+    }
+]

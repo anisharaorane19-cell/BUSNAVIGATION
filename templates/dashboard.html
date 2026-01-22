@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto container">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- Add Route Card -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 brand-border">
+            <h3 class="text-xl font-bold mb-4 text-gray-700">Add New Bus Route</h3>
+
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-sm text-gray-600">Quick Route Templates</label>
+                <div class="flex gap-2">
+                    <button onclick="loadTemplate('NH66')"
+                        class="bg-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300">Load NH 66 (Highway)</button>
+                    <button onclick="loadTemplate('Coastal')"
+                        class="bg-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300">Load Coastal (Local)</button>
+                </div>
+            </div>
+
+            <form id="addBusForm" onsubmit="addBus(event)">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <input type="text" id="busNum" placeholder="Bus Number (e.g. MH07 1234)"
+                        class="border p-3 rounded bg-gray-50 font-bold" required>
+                    <select id="routeType" class="border p-3 rounded bg-gray-50">
+                        <option value="NH66">NH 66 Route</option>
+                        <option value="Coastal">Coastal Route</option>
+                    </select>
+                </div>
+
+                <!-- Dynamic Stops Container -->
+                <div id="stopsContainer" class="space-y-2 mb-4 max-h-[300px] overflow-y-auto border p-2 rounded">
+                    <!-- Stops inserted by JS -->
+                </div>
+
+                <div class="flex gap-2 mb-4">
+                    <!-- Dropdown for standard stations -->
+                    <select id="newStopSelect" class="flex-grow border p-2 rounded"
+                        onchange="document.getElementById('customStopInput').value = this.value">
+                        <option value="">Select or Type Below</option>
+                        {% for station in stations %}
+                        <option value="{{ station }}">{{ station }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Manual Entry for ANY Stop -->
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="customStopInput" placeholder="Type Custom Stop Name Here..."
+                        class="flex-grow border p-3 rounded bg-white">
+                    <button type="button" onclick="addStopManual()"
+                        class="bg-gray-800 text-white px-4 rounded hover:bg-gray-700">Add Stop</button>
+                </div>
+
+                <button type="submit"
+                    class="brand-red text-white w-full py-3 rounded-lg font-bold hover:opacity-90 transition">
+                    Save Route to Database
+                </button>
+            </form>
+        </div>
+
+        <!-- Active Buses Card -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-gray-800">
+            <h3 class="text-xl font-bold mb-4 text-gray-700">Active Fleet</h3>
+            <div id="fleetList" class="space-y-4">
+                <div class="p-4 bg-gray-50 rounded border flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold text-lg">MH07 X 9999</h4>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span>Ratnagiri ➝ Panaji (NH66)</span>
+                        </div>
+                    </div>
+                    <button onclick="startTrip('9999')"
+                        class="bg-green-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-green-700">
+                        Start Trip
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const STATIONS_NH66 = {{ nh66| tojson }};
+    const STATIONS_COASTAL = {{ coastal| tojson }};
+    let currentStops = [];
+
+    function loadTemplate(type) {
+        currentStops = type === 'NH66' ? [...STATIONS_NH66] : [...STATIONS_COASTAL];
+        renderStops();
+    }
+
+    function addStopManual() {
+        const val = document.getElementById('customStopInput').value;
+        if (!val) return alert("Please type a stop name");
+        currentStops.push(val);
+        document.getElementById('customStopInput').value = ""; // Clear input
+        renderStops();
+    }
+
+    function removeStop(index) {
+        currentStops.splice(index, 1);
+        renderStops();
+    }
+
+    function renderStops() {
+        const container = document.getElementById('stopsContainer');
+        container.innerHTML = currentStops.map((stop, index) => `
+            <div class="flex items-center gap-2 bg-gray-100 p-2 rounded">
+                <span class="bg-gray-300 w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">${index + 1}</span>
+                <span class="flex-grow font-medium">${stop}</span>
+                <input type="text" placeholder="Photo URL" class="text-xs border p-1 rounded w-24">
+                <button type="button" onclick="removeStop(${index})" class="text-red-500 hover:text-red-700">✕</button>
+            </div>
+        `).join('');
+    }
+
+    async function addBus(e) {
+        e.preventDefault();
+        const busNum = document.getElementById('busNum').value;
+        const type = document.getElementById('routeType').value;
+
+        // Send to Flask
+        const res = await fetch('/add_bus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                busNumber: busNum,
+                type: type,
+                stops: currentStops.map(s => ({ name: s, photo: "" }))
+            })
+        });
+        const data = await res.json();
+        if (data.success) alert("Bus Added Successfully!");
+        else alert("Error: " + data.error);
+    }
+
+    function startTrip(id) {
+        alert("GPS Tracking Started for bus " + id + "\n\nSimulating live movement...");
+    }
+</script>
+{% endblock %}
